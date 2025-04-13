@@ -10,19 +10,22 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// MySQL Connection
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,  // 🔥 here
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT
 });
 
+// ✅ Define tableName safely from .env (or fallback to 'notes')
+const tableName = process.env.DB_TABLE || 'notes';
 
 // Routes
 app.get('/api/notes', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM notes ORDER BY created_at DESC');
+    const [rows] = await pool.query(`SELECT * FROM \`${tableName}\` ORDER BY created_at DESC`);
     res.json(rows);
   } catch (err) {
     console.error('Error fetching notes:', err);
@@ -33,7 +36,7 @@ app.get('/api/notes', async (req, res) => {
 app.post('/api/notes', async (req, res) => {
   const { title, content } = req.body;
   try {
-    await pool.query('INSERT INTO notes (title, content) VALUES (?, ?)', [title, content]);
+    await pool.query(`INSERT INTO \`${tableName}\` (title, content) VALUES (?, ?)`, [title, content]);
     res.status(201).json({ message: 'Note created successfully' });
   } catch (err) {
     console.error('Error creating note:', err);
@@ -44,7 +47,7 @@ app.post('/api/notes', async (req, res) => {
 app.delete('/api/notes/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM notes WHERE id = ?', [id]);
+    await pool.query(`DELETE FROM \`${tableName}\` WHERE id = ?`, [id]);
     res.json({ message: 'Note deleted successfully' });
   } catch (err) {
     console.error('Error deleting note:', err);
