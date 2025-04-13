@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API_URL = "http://localhost:5000/api/notes"; // Update this when deploying!
+const API_URL = process.env.REACT_APP_API_URL; // Points to /api (proxy in Apache will map correctly)
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -17,7 +17,7 @@ function App() {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(API_URL);
+      const response = await axios.get(`${API_URL}/notes`);
       setNotes(response.data);
       setLoading(false);
     } catch (err) {
@@ -33,7 +33,7 @@ function App() {
       return;
     }
     try {
-      await axios.post(API_URL, { title, content });
+      await axios.post(`${API_URL}/notes`, { title, content });
       setTitle('');
       setContent('');
       setError('');
@@ -46,7 +46,7 @@ function App() {
 
   const deleteNote = async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await axios.delete(`${API_URL}/notes/${id}`);
       setError('');
       fetchNotes();
     } catch (err) {
@@ -62,7 +62,7 @@ function App() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <div>
-        <input 
+        <input
           placeholder="Title"
           value={title}
           onChange={e => setTitle(e.target.value)}
